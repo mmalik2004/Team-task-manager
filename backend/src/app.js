@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth.routes');
@@ -17,20 +18,19 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
-app.get('/', (req, res) => {
-  res.json({ message: '✅ TaskFlow API is running' });
-});
-
-// Routes
+// API Routes first
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found.' });
+// Serve frontend static files
+const frontendPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendPath));
+
+// Handle React routing - must be last
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 module.exports = app;
